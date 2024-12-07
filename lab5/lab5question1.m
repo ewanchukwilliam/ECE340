@@ -8,7 +8,7 @@ filter_coeff = fir1(N-1, wc, 'low', window); % Low-pass FIR filter design
 
 % Plot the frequency response of the filter
 figure;
-freqz(filter_coeff, 1, 1024, Fs);  % Frequency response
+freqz(filter_coeff, 1, 1024);  % Frequency response
 title('Frequency Response of the FIR Filter');
 
 % Read the audio signal
@@ -25,26 +25,17 @@ window_size = 1024;
 overlap = window_size / 2;
 nfft = 2048;
 
-% PSD of input signal
-[p_input, f_input] = pwelch(x, window_size, overlap, nfft, Fs);
-
-% PSD of filtered signal
-[p_output, f_output] = pwelch(x_filtered, window_size, overlap, nfft, Fs);
-
 % Plot comparison in two subplots
 figure;
 subplot(2, 1, 1); % First subplot for input signal spectrum
-plot(f_input, 10*log10(p_input), 'b', 'LineWidth', 1.5);
+pwelch(x, window_size, [], nfft, Fs);
 grid on;
-xlabel('Frequency (Hz)');
-ylabel('Power/Frequency (dB/Hz)');
+
 title('Spectrum of Input Signal');
 
 subplot(2, 1, 2); % Second subplot for filtered signal spectrum
-plot(f_output, 10*log10(p_output), 'r', 'LineWidth', 1.5);
+pwelch(x_filtered, window_size, [], nfft, Fs);
 grid on;
-xlabel('Frequency (Hz)');
-ylabel('Power/Frequency (dB/Hz)');
 title('Spectrum of Filtered Signal');
 
 % Save the modified output signal
@@ -52,10 +43,10 @@ audiowrite('filtered_love_mono22.wav', x_filtered, Fs); % Save output
 
 % Play both signals
 disp('Playing original signal...');
-sound(x, Fs);  % Play original signal
-pause(length(x) / Fs + 1); % Wait for playback to complete
+%sound(x, Fs);  % Play original signal
+%pause(length(x) / Fs + 1); % Wait for playback to complete
 
 disp('Playing filtered signal...');
-sound(x_filtered, Fs); % Play filtered signal
+%sound(x_filtered, Fs); % Play filtered signal
 
 disp('Script completed! Listen to the difference between the original and filtered signals.');

@@ -1,52 +1,52 @@
-% Load noisy audio signal
-[noisy_signal, Fs] = audioread('love_mono22.wav');
+% MATLAB Script for Bandstop FIR Filter Design (2.95 kHz to 3.05 kHz)
 
-% Plot the spectrum of the noisy signal
-window_size = 1024; overlap = window_size / 2; nfft = 2048;
-[p_noisy, f_noisy] = pwelch(noisy_signal, window_size, overlap, nfft, Fs);
+% Parameters
+Fs = 22050; % Sampling frequency in Hz
+fc_low = 2850; % Low cutoff frequency in Hz (2.95 kHz)
+fc_high = 3150; % High cutoff frequency in Hz (3.05 kHz)
+N = 512; % Filter order (number of taps), you can increase this for sharper response
 
-figure;
-plot(f_noisy / 1000, 10*log10(p_noisy), 'b', 'LineWidth', 1.5);
-grid on; xlabel('Frequency (kHz)'); ylabel('Power/Frequency (dB/Hz)');
-title('Spectrum of Noisy Audio Signal');
+% Normalized cutoff frequencies (scaled by Nyquist frequency)
+wc_low = fc_low / (Fs / 2);
+wc_high = fc_high / (Fs / 2);
 
-% Design lowpass filter (adjust cutoff frequency based on spectrum analysis)
-fc = 5500; % Cutoff frequency in Hz
-wc = fc / (Fs / 2); % Normalized cutoff frequency
-N = 513; % Filter order
+% Truncation window function (Hamming)
 window = hamming(N);
-filter_coeff = fir1(N-1, wc, 'low', window);
 
-% Plot the filter response
+% Design the bandstop filter using fir1
+filter_coeff = fir1(N-1, [wc_low wc_high], 'stop');
+
+% Plot frequency response
 figure;
-freqz(filter_coeff, 1, 1024, Fs);
-title('Frequency Response of the FIR Filter');
+freqz(filter_coeff, 1, 1024); % Frequency response
+title('Frequency Response of Bandstop FIR Filter');
 
-% Filter the noisy signal
-filtered_signal = filter(filter_coeff, 1, noisy_signal);
+% Read the audio signal
+[x, Fs] = audioread('love_mono22.wav'); % Load the audio file
+x = x(:, 1); % Ensure it’s a single channel (mono)
 
-% Compare the spectrum of the input and output signals
-[p_filtered, f_filtered] = pwelch(filtered_signal, window_size, overlap, nfft, Fs);
+% Filter the audio signal
+x_filtered = filter(filter_coeff, 1, x);
 
+% Calculate and compare spectra (in dB and kHz)
 figure;
-subplot(2, 1, 1); % Noisy signal spectrum
-plot(f_noisy / 1000, 10*log10(p_noisy), 'b', 'LineWidth', 1.5);
-grid on; xlabel('Frequency (kHz)'); ylabel('Power/Frequency (dB/Hz)');
-title('Spectrum of Noisy Signal');
+subplot(2, 1, 1);
+pwelch(x, window, [], [], Fs); % Spectrum of the original signal
+title('Spectrum of Original Signal');
 
-subplot(2, 1, 2); % Filtered signal spectrum
-plot(f_filtered / 1000, 10*log10(p_filtered), 'r', 'LineWidth', 1.5);
-grid on; xlabel('Frequency (kHz)'); ylabel('Power/Frequency (dB/Hz)');
+
+subplot(2, 1, 2);
+pwelch(x_filtered, window, [], [], Fs); % Spectrum of the filtered signal
 title('Spectrum of Filtered Signal');
 
-% Save and play filtered audio
-audiowrite('filtered_audio.wav', filtered_signal, Fs);
 
-disp('Playing original noisy signal...');
-sound(noisy_signal, Fs);
-pause(length(noisy_signal) / Fs + 1);
+% Save the filtered signal as a .wav file
+audiowrite('love_bandstop_filtered.wav', x_filtered, Fs);
 
-disp('Playing filtered signal...');
-sound(filtered_signal, Fs);
+% Play the original and filtered signals (optional)
+%sound(x, Fs); % Play the original signal
+%pause(length(x)/Fs + 1); % Wait for the original signal to finish
+sound(x_filtered, Fs); % Play the filtered signal
 
-disp('Script completed! Listen to the difference between the noisy and filtered signals.');
+% Comments on the difference
+disp('Listen to the original and filtered signals to observe the bandstop behavior.');

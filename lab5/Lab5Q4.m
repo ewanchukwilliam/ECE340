@@ -38,7 +38,7 @@ fprintf('\nPress any key to continue')
 pause
 
 
-filter_coeff = [1  2 3 2 1; 2  3  4  3 2; 3  4  5  4 3; 2  3  4  3  2; 1  2  3  2 1]/65 ;
+filter_coeff = [1 2 3 2 1; 2  3  4  3 2; 3  4  5  4 3; 2  3  4  3  2; 1  2  3  2 1]/65 ;
 % Frequency Response plot
 spec = fft2(filter_coeff,128,128) ;     % Frequency spectrum of 2-D Filter
 R = abs(spec(1:65,1:65)) ;
